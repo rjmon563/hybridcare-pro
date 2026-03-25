@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f2027">
+    <meta name="description" content="HybridCare Pro - Diagnóstico profesional completo para vehículos híbridos con análisis de batería, consumo, mantenimiento predictivo y generación de informes">
+    <meta name="keywords" content="obd2, coche híbrido, diagnóstico, fallos, mantenimiento, batería híbrida, eficiencia, consumo">
+    <meta name="author" content="HybridCare Team">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HybridCare Pro">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+    
+    <title>HybridCare Pro - Diagnóstico Completo para Híbridos</title>
+    
+    <!-- Librerías -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ==================== ESTILOS COMPLETOS ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7fafc;
+            --bg-tertiary: #edf2f7;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --accent-success: #48bb78;
+            --accent-warning: #f6ad55;
+            --accent-danger: #fc8181;
+            --accent-info: #4299e1;
+            --accent-purple: #9f7aea;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-tertiary: #4a5568;
+            --text-primary: #f7fafc;
+            --text-secondary: #cbd5e0;
+            --border-color: #4a5568;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 16px;
+            padding-bottom: 80px;
+            transition: all 0.3s;
+        }
+
+        body.light-theme {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 16px;
+            z-index: 100;
+        }
+
+        .connection-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 40px;
+            background: var(--bg-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-led {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-led.connected { background: #48bb78; box-shadow: 0 0 8px #48bb78; }
+        .status-led.disconnected { background: #fc8181; }
+        .status-led.connecting { background: #f6ad55; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        .connect-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .title h1 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge-free {
+            background: #48bb78;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-pro {
+            background: #9f7aea;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .title p {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        /* Navegación por pestañas principal */
+        .main-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 60px;
+            backdrop-filter: blur(10px);
+        }
+
+        .main-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: white;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .main-tab.active {
+            background: var(--accent-success);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .card h2 {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--accent-success);
+            padding-left: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Indicadores */
+        .indicator {
+            margin-bottom: 20px;
+        }
+
+        .indicator-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 16px;
+        }
+
+        .progress-fill.warning { background: linear-gradient(90deg, #f6ad55, #ed8936); }
+        .progress-fill.danger { background: linear-gradient(90deg, #fc8181, #e53e3e); }
+
+        /* Grid de datos */
+        .realtime-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .data-card {
+            text-align: center;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .data-card:hover {
+            background: var(--bg-tertiary);
+            transform: scale(1.02);
+        }
+
+        .data-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .data-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        /* Fallos */
+        .faults-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .fault-item {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .fault-item.critical { background: #fff0f0; border-left-color: #e53e3e; }
+        .fault-item.major { background: #fff5f0; border-left-color: #f6ad55; }
+        .fault-item.minor { background: #fef5e7; border-left-color: #fbbf24; }
+
+        .fault-item:hover {
+            transform: translateX(6px);
+        }
+
+        .fault-code {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 14px;
+            color: #e53e3e;
+        }
+
+        /* Gráfico */
+        .chart-container {
+            margin: 20px 0;
+            height: 200px;
+        }
+
+        /* Botones */
+        button {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #48bb78, #38a169); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #fc8181, #e53e3e); color: white; }
+        .btn-warning { background: linear-gradient(135deg, #f6ad55, #ed8936); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--accent-success); color: var(--accent-success); }
+
+        /* Tabs internas */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--accent-success);
+            border-bottom: 2px solid var(--accent-success);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            border-radius: 28px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        /* Tema flotante */
+        .theme-switch {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 52px;
+            height: 52px;
+            border-radius: 26px;
+            background: var(--accent-success);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            border: none;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+
+        .theme-switch:hover {
+            transform: scale(1.05);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 40px;
+            z-index: 2000;
+            animation: slideUp 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            max-width: 90%;
+            text-align: center;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-success);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .realtime-grid {
+                grid-template-columns: 1fr;
+            }
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            .main-tabs {
+                flex-wrap: wrap;
+            }
+            .main-tab {
+                flex: none;
+                width: calc(50% - 4px);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="connection-status">
+                <div class="status-badge">
+                    <div class="status-led disconnected" id="statusLed"></div>
+                    <span id="statusText">Desconectado</span>
+                </div>
+                <button class="connect-btn" id="connectBtn" onclick="toggleConnection()">
+                    🔌 Conectar OBD2
+                </button>
+            </div>
+            <div class="title">
+                <h1>
+                    🔋 HybridCare Pro 
+                    <span class="badge-free">GRATIS</span>
+                    <span class="badge-pro">v3.0 COMPLETA</span>
+                </h1>
+                <p>Diagnóstico profesional completo | Análisis de batería | Mantenimiento predictivo | Informes PDF</p>
+            </div>
+        </div>
+
+        <!-- Pestañas principales -->
+        <div class="main-tabs">
+            <button class="main-tab active" onclick="switchMainTab('dashboard')">📊 Dashboard</button>
+            <button class="main-tab" onclick="switchMainTab('battery')">🔋 Batería Híbrida</button>
+            <button class="main-tab" onclick="switchMainTab('consumption')">⛽ Consumo</button>
+            <button class="main-tab" onclick="switchMainTab('maintenance')">🔧 Mantenimiento</button>
+            <button class="main-tab" onclick="switchMainTab('backup')">💾 Backup</button>
+        </div>
+
+        <!-- Pestaña 1: Dashboard Principal -->
+        <div id="tab-dashboard" class="main-tab-content active">
+            <div class="dashboard">
+                <!-- Tarjeta Estado del Vehículo -->
+                <div class="card">
+                    <h2><i class="fas fa-car"></i> Estado del Vehículo</h2>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span><i class="fas fa-battery-full"></i> Batería Híbrida</span>
+                            <span id="hybridBattery">--%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="hybridBatteryFill" style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span><i class="fas fa-gas-pump"></i> Combustible</span>
+                            <span id="fuelLevel">--%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="fuelFill" style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                    <div class="realtime-grid">
+                        <div class="data-card" onclick="speakData('rpm')">
+                            <div class="data-label"><i class="fas fa-tachometer-alt"></i> RPM</div>
+                            <div class="data-value" id="rpm">--</div>
+                        </div>
+                        <div class="data-card" onclick="speakData('speed')">
+                            <div class="data-label"><i class="fas fa-speedometer"></i> Velocidad</div>
+                            <div class="data-value" id="speed">-- km/h</div>
+                        </div>
+                        <div class="data-card" onclick="speakData('engineTemp')">
+                            <div class="data-label"><i class="fas fa-thermometer-half"></i> Temp. Motor</div>
+                            <div class="data-value" id="engineTemp">-- °C</div>
+                        </div>
+                        <div class="data-card" onclick="speakData('batteryTemp')">
+                            <div class="data-label"><i class="fas fa-thermometer-full"></i> Temp. Batería</div>
+                            <div class="data-value" id="batteryTemp">-- °C</div>
+                        </div>
+                        <div class="data-card" onclick="speakData('voltage')">
+                            <div class="data-label"><i class="fas fa-bolt"></i> Voltaje</div>
+                            <div class="data-value" id="voltage">-- V</div>
+                        </div>
+                        <div class="data-card" onclick="speakData('alternator')">
+                            <div class="data-label"><i class="fas fa-charging-station"></i> Alternador</div>
+                            <div class="data-value" id="alternator">-- A</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 16px;">
+                        <span style="font-size: 1.8rem; font-weight: bold;" id="totalRange">--</span>
+                        <span class="value-unit"> km de autonomía</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Salud y Gráficos -->
+                <div class="card">
+                    <h2><i class="fas fa-heartbeat"></i> Salud del Sistema</h2>
+                    <div style="background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 20px; padding: 20px; margin-bottom: 20px; text-align: center;">
+                        <div style="font-size: 3rem; font-weight: bold; color: white;" id="healthScore">0%</div>
+                        <div style="color: white; opacity: 0.9;">Salud General del Vehículo</div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span><i class="fas fa-microchip"></i> Sistema Eléctrico</span>
+                            <span id="electricalHealth">--%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="electricalFill" style="width: 0%"></div></div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span><i class="fas fa-cogs"></i> Sistema Mecánico</span>
+                            <span id="mechanicalHealth">--%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="mechanicalFill" style="width: 0%"></div></div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span><i class="fas fa-temperature-high"></i> Sistema Térmico</span>
+                            <span id="thermalHealth">--%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="thermalFill" style="width: 0%"></div></div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn-outline" onclick="updateChart('day')">24h</button>
+                        <button class="btn-outline" onclick="updateChart('week')">Semana</button>
+                        <button class="btn-outline" onclick="updateChart('month')">Mes</button>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Diagnóstico de Fallos -->
+                <div class="card">
+                    <h2><i class="fas fa-exclamation-triangle"></i> Diagnóstico de Fallos</h2>
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('active')">🔴 Activos</button>
+                        <button class="tab" onclick="switchTab('history')">📋 Historial</button>
+                        <button class="tab" onclick="switchTab('predictive')">🔮 Predictivo</button>
+                    </div>
+                    <div id="activeTab" class="tab-content active">
+                        <div id="activeFaults" class="faults-list"></div>
+                        <button class="btn-primary" onclick="refreshDiagnostics()"><i class="fas fa-sync-alt"></i> Actualizar Diagnóstico</button>
+                        <button class="btn-danger" onclick="clearAllFaults()" id="clearFaultsBtn" disabled><i class="fas fa-trash-alt"></i> Borrar Fallos Activos</button>
+                    </div>
+                    <div id="historyTab" class="tab-content">
+                        <div id="historyFaults" class="faults-list"></div>
+                        <button class="btn-secondary" onclick="exportFaultHistory()"><i class="fas fa-download"></i> Exportar Historial</button>
+                    </div>
+                    <div id="predictiveTab" class="tab-content">
+                        <div id="predictiveFaults" class="faults-list"></div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Comandos y Consejos -->
+                <div class="card">
+                    <h2><i class="fas fa-microphone-alt"></i> Comandos de Voz</h2>
+                    <button class="btn-primary" onclick="startVoiceControl()">
+                        <i class="fas fa-microphone"></i> "Hola HybridCare"
+                    </button>
+                    <div id="voiceResult" style="margin-top: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 16px; font-size: 13px;">
+                        <i class="fas fa-comment-dots"></i> Di: "diagnóstico", "estado vehículo", "registrar viaje", "conectar obd", "informe"
+                    </div>
+                    <h2 style="margin-top: 20px;"><i class="fas fa-lightbulb"></i> Consejos en Tiempo Real</h2>
+                    <div id="drivingTip" style="background: var(--bg-secondary); padding: 14px; border-radius: 16px; font-size: 13px; line-height: 1.5;">
+                        Conecta el adaptador OBD2 para recibir consejos personalizados
+                    </div>
+                    <div class="indicator" style="margin-top: 16px;">
+                        <div class="indicator-label">
+                            <span><i class="fas fa-chart-line"></i> Eficiencia de Conducción</span>
+                            <span id="drivingEfficiency">--%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="drivingFill" style="width: 0%"></div></div>
+                    </div>
+                    <button class="btn-primary" onclick="registerTrip()" id="registerBtn" disabled><i class="fas fa-road"></i> Registrar Viaje</button>
+                    <button class="btn-secondary" onclick="startRouteTracking()" id="routeBtn" disabled><i class="fas fa-map-marker-alt"></i> Iniciar Seguimiento GPS</button>
+                    <button class="btn-primary" onclick="generateReport()" id="reportBtn" disabled><i class="fas fa-file-pdf"></i> Generar Informe PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 2: Análisis de Batería Híbrida -->
+        <div id="tab-battery" class="main-tab-content">
+            <div class="dashboard">
+                <div class="card">
+                    <h2><i class="fas fa-battery-full"></i> Estado de la Batería Híbrida</h2>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span>SOH (State of Health)</span>
+                            <span id="batterySOH">--%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="batterySOHFill" style="width: 0%"></div></div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span>Capacidad Restante</span>
+                            <span id="batteryCapacity">--%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="batteryCapacityFill" style="width: 0%"></div></div>
+                    </div>
+                    <div class="realtime-grid">
+                        <div class="data-card">
+                            <div class="data-label">Voltaje Total</div>
+                            <div class="data-value" id="batteryVoltage">-- V</div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-label">Corriente</div>
+                            <div class="data-value" id="batteryCurrent">-- A</div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-label">Ciclos de Carga</div>
+                            <div class="data-value" id="batteryCycles">--</div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-label">Vida Útil Restante</div>
+                            <div class="data-value" id="batteryLifeRemaining">-- años</div>
+                        </div>
+                    </div>
+                    <div id="batteryRecommendations" style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 12px;">
+                        Conecta el OBD2 para análisis detallado de la batería
+                    </div>
+                    <button class="btn-primary" onclick="analyzeBattery()" id="analyzeBatteryBtn" disabled><i class="fas fa-chart-line"></i> Analizar Batería</button>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-charging-station"></i> Curva de Carga/Descarga</h2>
+                    <div class="chart-container">
+                        <canvas id="batteryChart"></canvas>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span>Eficiencia de Carga</span>
+                            <span id="chargingEfficiency">--%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="chargingEfficiencyFill" style="width: 0%"></div></div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span>Frenado Regenerativo</span>
+                            <span id="regenerativePower">-- kW</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="regenerativeFill" style="width: 0%"></div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-chart-bar"></i> Historial de Ciclos</h2>
+                    <div id="cycleHistory" class="faults-list" style="max-height: 300px;">
+                        <div style="text-align: center; padding: 30px;">Datos de ciclos de carga disponibles al conectar OBD2</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 3: Análisis de Consumo -->
+        <div id="tab-consumption" class="main-tab-content">
+            <div class="dashboard">
+                <div class="card">
+                    <h2><i class="fas fa-chart-line"></i> Consumo Actual</h2>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span>Consumo Instantáneo</span>
+                            <span id="instantConsumption">-- L/100km</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="consumptionFill" style="width: 0%"></div></div>
+                    </div>
+                    <div class="indicator">
+                        <div class="indicator-label">
+                            <span>Consumo Medio</span>
+                            <span id="avgConsumption">-- L/100km</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill" id="avgConsumptionFill" style="width: 0%"></div></div>
+                    </div>
+                    <div id="consumptionAnalysis" style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 12px;">
+                        Conecta el OBD2 para análisis de consumo
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-coins"></i> Costes y Ahorro</h2>
+                    <div class="realtime-grid">
+                        <div class="data-card">
+                            <div class="data-label">Coste por km</div>
+                            <div class="data-value" id="costPerKm">-- €/km</div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-label">Ahorro vs Convencional</div>
+                            <div class="data-value" id="savingsVsConventional">-- €</div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-label">CO₂ Ahorrado</div>
+                            <div class="data-value" id="co2Saved">-- kg</div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-label">Total Viajes</div>
+                            <div class="data-value" id="totalTripsCount">--</div>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="calculateSavings()"><i class="fas fa-calculator"></i> Calcular Ahorro Total</button>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-chart-pie"></i> Comparativa con Convencional</h2>
+                    <div class="chart-container">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                    <div id="comparisonText" style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 12px; text-align: center;">
+                        Datos disponibles al registrar viajes
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 4: Mantenimiento -->
+        <div id="tab-maintenance" class="main-tab-content">
+            <div class="dashboard">
+                <div class="card">
+                    <h2><i class="fas fa-calendar-alt"></i> Recordatorios de Mantenimiento</h2>
+                    <div id="maintenanceReminders" class="faults-list" style="max-height: 400px;">
+                        <div style="text-align: center; padding: 30px;">Configura tu kilometraje para ver recordatorios</div>
+                    </div>
+                    <div class="control-group" style="margin-top: 16px;">
+                        <label>Kilometraje actual (km)</label>
+                        <input type="number" id="currentOdometer" placeholder="Ej: 25000" value="0">
+                    </div>
+                    <button class="btn-primary" onclick="updateMaintenanceReminders()"><i class="fas fa-sync-alt"></i> Actualizar Recordatorios</button>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-chart-line"></i> Próximos Servicios</h2>
+                    <div id="upcomingServices" class="faults-list" style="max-height: 400px;"></div>
+                    <button class="btn-secondary" onclick="exportMaintenanceSchedule()"><i class="fas fa-download"></i> Exportar Plan de Mantenimiento</button>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-history"></i> Historial de Servicios</h2>
+                    <div id="serviceHistory" class="faults-list" style="max-height: 300px;">
+                        <div style="text-align: center; padding: 30px;">Registra tus servicios realizados</div>
+                    </div>
+                    <button class="btn-primary" onclick="addServiceRecord()"><i class="fas fa-plus"></i> Registrar Servicio Realizado</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 5: Backup y Exportación -->
+        <div id="tab-backup" class="main-tab-content">
+            <div class="dashboard">
+                <div class="card">
+                    <h2><i class="fas fa-database"></i> Copias de Seguridad</h2>
+                    <button class="btn-primary" onclick="createBackup()"><i class="fas fa-save"></i> Crear Copia de Seguridad</button>
+                    <button class="btn-secondary" onclick="exportBackup()"><i class="fas fa-download"></i> Exportar Backup</button>
+                    <input type="file" id="restoreFile" accept=".json" style="display: none;" onchange="restoreBackup(this.files[0])">
+                    <button class="btn-warning" onclick="document.getElementById('restoreFile').click()"><i class="fas fa-upload"></i> Restaurar desde Backup</button>
+                    <div id="backupInfo" style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 12px;">
+                        Último backup: No realizado
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-cloud-upload-alt"></i> Sincronización en la Nube</h2>
+                    <button class="btn-primary" onclick="syncToCloud()"><i class="fab fa-google-drive"></i> Google Drive</button>
+                    <button class="btn-primary" onclick="syncToICloud()"><i class="fab fa-apple"></i> iCloud</button>
+                    <button class="btn-secondary" onclick="configureWebDAV()"><i class="fas fa-cloud"></i> WebDAV (Nextcloud)</button>
+                    <div id="cloudStatus" style="margin-top: 16px; padding: 12px; background: var(--bg-secondary); border-radius: 12px;">
+                        Configura la sincronización en la nube
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-chart-simple"></i> Estadísticas Generales</h2>
+                    <div class="realtime-grid">
+                        <div class="data-card">
+                            <div class="data-label">Total Viajes</div>
+                            <div class="data-value" id="statsTotalTrips">0</div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-label">Distancia Total</div>
+                            <div class="data-value" id="statsTotalDistance">0 km</div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-label">Ahorro Total</div>
+                            <div class="data-value" id="statsTotalSavings">0 €</div>
+                        </div>
+                        <div class="data-card">
+                            <div class="data-label">CO₂ Evitado</div>
+                            <div class="data-value" id="statsTotalCO2">0 kg</div>
+                        </div>
+                    </div>
+                    <button class="btn-secondary" onclick="exportStatistics()"><i class="fas fa-chart-bar"></i> Exportar Estadísticas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="theme-switch" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div id="faultModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle"><i class="fas fa-bug"></i> Detalles del Fallo</h3>
+            <div id="modalDetails"></div>
+            <button onclick="closeModal()" class="btn-primary" style="margin-top: 16px;"><i class="fas fa-check"></i> Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== BASE DE DATOS DTC COMPLETA ====================
+        const DTC_DATABASE = {
+            'P0A80': { description: 'Batería híbrida degradada - Capacidad por debajo del umbral', severity: 'critical', system: 'electrical', solution: 'Reemplazar batería de tracción. Coste estimado: 2000-4000€', symptoms: ['Reducción de autonomía eléctrica', 'Mayor consumo de combustible', 'Testigo check engine'] },
+            'P0A7F': { description: 'Batería híbrida con nivel bajo', severity: 'major', system: 'electrical', solution: 'Recargar batería o revisar sistema de carga', symptoms: ['Modo de conducción limitado', 'Menor potencia'] },
+            'P0A94': { description: 'Convertidor DC-DC - Problema en la conversión de voltaje', severity: 'critical', system: 'electrical', solution: 'Revisar convertidor de voltaje, posible reemplazo', symptoms: ['Batería auxiliar no se carga', 'Luces tenues'] },
+            'P0AFA': { description: 'Sistema de refrigeración batería híbrida', severity: 'major', system: 'thermal', solution: 'Revisar ventiladores y sistema de refrigeración', symptoms: ['Sobrecalentamiento de batería', 'Reducción de potencia'] },
+            'P0300': { description: 'Fallos de encendido aleatorios en múltiples cilindros', severity: 'major', system: 'mechanical', solution: 'Revisar bujías, bobinas e inyectores', symptoms: ['Pérdida de potencia', 'Vibraciones', 'Mayor consumo'] },
+            'P0420': { description: 'Eficiencia del catalizador por debajo del umbral', severity: 'major', system: 'mechanical', solution: 'Revisar sonda lambda y catalizador', symptoms: ['Aumento de consumo', 'Olor a combustible'] },
+            'P0562': { description: 'Voltaje de batería bajo', severity: 'warning', system: 'electrical', solution: 'Revisar alternador y batería de 12V', symptoms: ['Arranque difícil', 'Luces tenues'] },
+            'P0563': { description: 'Voltaje de batería alto', severity: 'warning', system: 'electrical', solution: 'Revisar regulador de voltaje', symptoms: ['Luces intermitentes', 'Fusibles quemados'] },
+            'P0128': { description: 'Termostato defectuoso - Temperatura de motor baja', severity: 'minor', system: 'thermal', solution: 'Reemplazar termostato', symptoms: ['Temperatura baja de motor', 'Mayor consumo'] },
+            'P2181': { description: 'Sistema de refrigeración ineficiente', severity: 'major', system: 'thermal', solution: 'Revisar nivel de refrigerante y radiador', symptoms: ['Sobrecalentamiento', 'Pérdida de refrigerante'] }
+        };
+
+        // ==================== VARIABLES GLOBALES ====================
+        let isConnected = false;
+        let readingInterval = null;
+        let routeTracking = false;
+        let routePath = [];
+        let performanceChart;
+        let batteryChart;
+        let comparisonChart;
+        
+        let realTimeData = {
+            hybridBattery: 85, fuelLevel: 65, rpm: 0, speed: 0, engineTemp: 85,
+            batteryTemp: 28, voltage: 13.8, alternator: 45
+        };
+        
+        let batteryData = {
+            soh: 92,
+            capacity: 88,
+            voltage: 230,
+            current: 0,
+            cycles: 1250,
+            chargingEfficiency: 85,
+            regenerativePower: 12
+        };
+        
+        let consumptionData = {
+            instant: 5.2,
+            average: 4.8,
+            history: [],
+            totalDistance: 0,
+            totalSaved: 0
+        };
+        
+        let activeFaults = [];
+        let faultHistory = [];
+        let trips = [];
+        let predictiveFaults = [];
+        let serviceRecords = [];
+        let maintenanceReminders = [];
+
+        // ==================== INICIALIZACIÓN ====================
+        function init() {
+            loadData();
+            initCharts();
+            updateUI();
+            simulateData();
+            loadTheme();
+            
+            setInterval(() => { if(isConnected) updateUI(); }, 2000);
+            setInterval(() => { if(isConnected) analyzeRealTime(); }, 1000);
+            setInterval(() => { autoBackup(); }, 3600000); // Backup automático cada hora
+            
+            showToast('🎉 HybridCare Pro v3.0 - Sistema completo de diagnóstico', 'success');
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(console.error);
+            }
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('hybridcare_pro');
+            if(saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    faultHistory = data.faultHistory || [];
+                    trips = data.trips || [];
+                    serviceRecords = data.serviceRecords || [];
+                    maintenanceReminders = data.maintenanceReminders || [];
+                    consumptionData.totalDistance = data.totalDistance || 0;
+                    consumptionData.totalSaved = data.totalSaved || 0;
+                } catch(e) {}
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('hybridcare_pro', JSON.stringify({
+                faultHistory, trips, serviceRecords, maintenanceReminders,
+                totalDistance: consumptionData.totalDistance,
+                totalSaved: consumptionData.totalSaved
+            }));
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-theme');
+                document.querySelector('.theme-switch i').className = 'fas fa-sun';
+            }
+        }
+
+        // ==================== GRÁFICOS ====================
+        function initCharts() {
+            // Gráfico principal
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [
+                    { label: 'Eficiencia Híbrida (%)', borderColor: '#48bb78', backgroundColor: 'rgba(72,187,120,0.1)', data: [], tension: 0.3, fill: true },
+                    { label: 'Consumo (L/100km)', borderColor: '#f6ad55', backgroundColor: 'rgba(246,173,85,0.1)', data: [], tension: 0.3, fill: true }
+                ]},
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+            
+            // Gráfico de batería
+            const batteryCtx = document.getElementById('batteryChart').getContext('2d');
+            batteryChart = new Chart(batteryCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [
+                    { label: 'Voltaje (V)', borderColor: '#48bb78', data: [], tension: 0.3 },
+                    { label: 'Corriente (A)', borderColor: '#f6ad55', data: [], tension: 0.3 }
+                ]},
+                options: { responsive: true }
+            });
+            
+            // Gráfico de comparación
+            const compCtx = document.getElementById('comparisonChart').getContext('2d');
+            comparisonChart = new Chart(compCtx, {
+                type: 'bar',
+                data: { labels: ['Híbrido', 'Convencional'], datasets: [{ label: 'Consumo (L/100km)', data: [0, 0], backgroundColor: ['#48bb78', '#fc8181'] }] },
+                options: { responsive: true }
+            });
+        }
+
+        function updateChart(period) {
+            const data = getHistoricalData(period);
+            performanceChart.data.labels = data.labels;
+            performanceChart.data.datasets[0].data = data.efficiency;
+            performanceChart.data.datasets[1].data = data.consumption;
+            performanceChart.update();
+            showToast(`Gráfico actualizado: ${period === 'day' ? 'últimas 24h' : period === 'week' ? 'última semana' : 'último mes'}`, 'info');
+        }
+
+        function getHistoricalData(period) {
+            const days = period === 'day' ? 24 : period === 'week' ? 7 : 30;
+            const labels = [];
+            const efficiency = [];
+            const consumption = [];
+            for(let i = 0; i < days; i++) {
+                labels.push(i+1);
+                efficiency.push(65 + Math.random() * 30);
+                consumption.push(4 + Math.random() * 3);
+            }
+            return { labels, efficiency, consumption };
+        }
+
+        // ==================== COMANDOS DE VOZ ====================
+        let recognition = null;
+
+        function startVoiceControl() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showToast('❌ Tu navegador no soporta comandos de voz. Usa Chrome en Android.', 'error');
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'es-ES';
+            recognition.onstart = () => showToast('🎤 Escuchando... Di un comando', 'info');
+            recognition.onresult = (event) => {
+                const command = event.results[0][0].transcript.toLowerCase();
+                document.getElementById('voiceResult').innerHTML = `<i class="fas fa-microphone-alt"></i> Dijiste: "${command}"`;
+                processVoiceCommand(command);
+            };
+            recognition.onerror = () => showToast('No te entendí, intenta de nuevo', 'warning');
+            recognition.start();
+        }
+
+        function processVoiceCommand(command) {
+            if(command.includes('diagnóstico') || command.includes('diagnostico')) {
+                refreshDiagnostics();
+                speakResponse('Ejecutando diagnóstico completo del vehículo');
+            } else if(command.includes('estado') || command.includes('vehículo') || command.includes('vehiculo')) {
+                speakResponse(`Batería híbrida al ${Math.round(realTimeData.hybridBattery)} por ciento. Velocidad ${realTimeData.speed} kilómetros por hora. Temperatura del motor ${realTimeData.engineTemp} grados.`);
+            } else if(command.includes('registrar') || command.includes('viaje')) {
+                registerTrip();
+            } else if(command.includes('conectar') || command.includes('obd')) {
+                toggleConnection();
+            } else if(command.includes('informe') || command.includes('reporte')) {
+                generateReport();
+            } else if(command.includes('batería') || command.includes('bateria')) {
+                switchMainTab('battery');
+                speakResponse('Abriendo análisis de batería híbrida');
+            } else if(command.includes('consumo')) {
+                switchMainTab('consumption');
+                speakResponse('Abriendo análisis de consumo');
+            } else if(command.includes('mantenimiento')) {
+                switchMainTab('maintenance');
+                speakResponse('Abriendo panel de mantenimiento');
+            } else {
+                speakResponse('Comando no reconocido. Puedes decir: diagnóstico, estado vehículo, registrar viaje, conectar obd, informe, batería, consumo o mantenimiento');
+            }
+        }
+
+        function speakResponse(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakData(type) {
+            const texts = {
+                rpm: `Revoluciones por minuto: ${realTimeData.rpm}`,
+                speed: `Velocidad: ${realTimeData.speed} kilómetros por hora`,
+                engineTemp: `Temperatura del motor: ${realTimeData.engineTemp} grados centígrados`,
+                batteryTemp: `Temperatura de la batería híbrida: ${realTimeData.batteryTemp} grados`,
+                voltage: `Voltaje del sistema: ${realTimeData.voltage} voltios`,
+                alternator: `Carga del alternador: ${realTimeData.alternator} amperios`
+            };
+            speakResponse(texts[type] || 'Dato no disponible');
+        }
+
+        // ==================== SIMULACIÓN OBD2 ====================
+        function simulateData() {
+            setInterval(() => {
+                if(!isConnected) return;
+                realTimeData.rpm = Math.floor(Math.random() * 3000) + 500;
+                realTimeData.speed = Math.floor(Math.random() * 120);
+                realTimeData.engineTemp = 80 + Math.floor(Math.random() * 25);
+                realTimeData.batteryTemp = 25 + Math.floor(Math.random() * 20);
+                realTimeData.voltage = 13.2 + (Math.random() * 1.2);
+                realTimeData.alternator = 30 + Math.floor(Math.random() * 50);
+                realTimeData.hybridBattery = Math.max(0, Math.min(100, realTimeData.hybridBattery + (Math.random() - 0.5) * 2));
+                realTimeData.fuelLevel = Math.max(0, Math.min(100, realTimeData.fuelLevel + (Math.random() - 0.5) * 0.5));
+                
+                // Simular datos de batería
+                batteryData.voltage = 220 + Math.random() * 40;
+                batteryData.current = -50 + Math.random() * 100;
+                batteryData.regenerativePower = Math.random() * 25;
+                
+                // Simular consumo
+                consumptionData.instant = 4 + Math.random() * 3;
+                
+                updateUI();
+                analyzeRealTime();
+                updateBatteryUI();
+                updateConsumptionUI();
+            }, 2000);
+        }
+
+        function analyzeRealTime() {
+            let efficiency = 85;
+            if(realTimeData.rpm > 3500) efficiency -= 20;
+            else if(realTimeData.rpm > 2500) efficiency -= 10;
+            if(realTimeData.speed > 120) efficiency -= 25;
+            else if(realTimeData.speed > 100) efficiency -= 15;
+            if(realTimeData.speed < 50 && realTimeData.rpm < 2000) efficiency += 15;
+            efficiency = Math.min(100, Math.max(0, efficiency));
+            
+            document.getElementById('drivingEfficiency').textContent = `${Math.round(efficiency)}%`;
+            document.getElementById('drivingFill').style.width = `${efficiency}%`;
+            document.getElementById('drivingFill').textContent = `${Math.round(efficiency)}%`;
+            
+            let tip = '';
+            if(realTimeData.rpm > 3500) tip = '🚗 Revoluciones altas. Cambia a una marcha superior para ahorrar combustible.';
+            else if(realTimeData.speed > 120) tip = '💨 Velocidad excesiva. Reduce la velocidad, consumes un 25% más.';
+            else if(realTimeData.speed < 50 && realTimeData.rpm < 2000) tip = '✨ Conducción excelente. Estás aprovechando al máximo el sistema híbrido.';
+            else if(realTimeData.hybridBattery < 20) tip = '🔋 Batería híbrida baja. El motor de combustión se activará para cargarla.';
+            else tip = '✅ Todos los parámetros en rango normal. Sigue así.';
+            
+            document.getElementById('drivingTip').innerHTML = `<i class="fas fa-lightbulb"></i> ${tip}`;
+        }
+
+        // ==================== DIAGNÓSTICO ====================
+        function refreshDiagnostics() {
+            showToast('🔍 Escaneando sistema...', 'info');
+            
+            setTimeout(() => {
+                const newFaults = [];
+                if(realTimeData.engineTemp > 110) newFaults.push({ code: 'P2181', timestamp: new Date().toISOString() });
+                if(realTimeData.voltage < 11.8) newFaults.push({ code: 'P0562', timestamp: new Date().toISOString() });
+                if(realTimeData.hybridBattery < 25) newFaults.push({ code: 'P0A7F', timestamp: new Date().toISOString() });
+                if(realTimeData.batteryTemp > 55) newFaults.push({ code: 'P0AFA', timestamp: new Date().toISOString() });
+                if(Math.random() < 0.1 && trips.length > 10) newFaults.push({ code: 'P0A80', timestamp: new Date().toISOString() });
+                
+                activeFaults = newFaults.map(f => ({ 
+                    ...f, 
+                    ...DTC_DATABASE[f.code] || { 
+                        description: 'Código no reconocido', 
+                        severity: 'minor', 
+                        solution: 'Consultar con taller especializado', 
+                        symptoms: ['Revisión necesaria'] 
+                    }
+                }));
+                
+                newFaults.forEach(f => { 
+                    if(!faultHistory.some(h => h.code === f.code && new Date(h.timestamp).getDate() === new Date().getDate())) {
+                        faultHistory.unshift({ ...f, cleared: false });
+                    }
+                });
+                
+                saveData();
+                updateFaultsDisplay();
+                updateHealthScore();
+                showToast(`✅ Diagnóstico completado: ${activeFaults.length} fallos encontrados`, activeFaults.length ? 'warning' : 'success');
+            }, 1500);
+        }
+
+        function updateFaultsDisplay() {
+            const activeContainer = document.getElementById('activeFaults');
+            if(activeFaults.length === 0) {
+                activeContainer.innerHTML = '<div style="text-align: center; padding: 30px; color: #48bb78;"><i class="fas fa-check-circle" style="font-size: 2rem;"></i><br>✅ Sin fallos activos</div>';
+                document.getElementById('clearFaultsBtn').disabled = true;
+            } else {
+                activeContainer.innerHTML = activeFaults.map(f => `
+                    <div class="fault-item ${f.severity}" onclick="showFaultDetails('${f.code}')">
+                        <div class="fault-code"><i class="fas fa-bug"></i> ${f.code}</div>
+                        <div class="fault-desc">${f.description}</div>
+                        <div class="fault-solution"><i class="fas fa-wrench"></i> ${f.solution.substring(0, 60)}...</div>
+                    </div>
+                `).join('');
+                document.getElementById('clearFaultsBtn').disabled = false;
+            }
+            
+            const historyContainer = document.getElementById('historyFaults');
+            if(faultHistory.length === 0) {
+                historyContainer.innerHTML = '<div style="text-align: center; padding: 30px;"><i class="fas fa-history"></i><br>No hay historial de fallos</div>';
+            } else {
+                historyContainer.innerHTML = faultHistory.slice(0, 30).map(f => {
+                    const info = DTC_DATABASE[f.code] || { description: 'Código desconocido', severity: 'minor' };
+                    const date = new Date(f.timestamp).toLocaleString();
+                    return `
+                        <div class="fault-item ${info.severity}" onclick="showFaultDetails('${f.code}')">
+                            <div class="fault-code"><i class="fas fa-code-branch"></i> ${f.code}</div>
+                            <div class="fault-desc">${info.description}</div>
+                            <div style="font-size: 11px; margin-top: 6px;">${date}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            generatePredictive();
+            const predContainer = document.getElementById('predictiveFaults');
+            if(predictiveFaults.length === 0) {
+                predContainer.innerHTML = '<div style="text-align: center; padding: 30px;">🔮 No se detectan riesgos futuros</div>';
+            } else {
+                predContainer.innerHTML = predictiveFaults.map(f => `
+                    <div class="fault-item ${f.severity}" onclick="showFaultDetails('${f.code}')">
+                        <div class="fault-code"><i class="fas fa-chart-line"></i> 🔮 ${f.code}</div>
+                        <div class="fault-desc">${f.description}</div>
+                        <div style="color: #f6ad55;">Probabilidad: ${f.probability}%</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function generatePredictive() {
+            predictiveFaults = [];
+            if(realTimeData.hybridBattery < 55 && trips.length > 10) {
+                predictiveFaults.push({ code: 'P0A80', description: 'Riesgo de degradación de batería híbrida', severity: 'major', probability: Math.min(95, Math.floor((55 - realTimeData.hybridBattery) * 2)), ...DTC_DATABASE['P0A80'] });
+            }
+            if(realTimeData.engineTemp > 98) {
+                predictiveFaults.push({ code: 'P2181', description: 'Posible fallo en sistema de refrigeración', severity: 'major', probability: Math.min(85, Math.floor((realTimeData.engineTemp - 95) * 5)), ...DTC_DATABASE['P2181'] });
+            }
+        }
+
+        function updateHealthScore() {
+            let score = 100;
+            score -= activeFaults.length * 12;
+            if(realTimeData.hybridBattery < 35) score -= 18;
+            if(realTimeData.engineTemp > 105) score -= 15;
+            if(realTimeData.voltage < 12 || realTimeData.voltage > 14.8) score -= 10;
+            score = Math.max(0, Math.min(100, score));
+            document.getElementById('healthScore').textContent = `${Math.round(score)}%`;
+            
+            const electrical = Math.max(0, 100 - (activeFaults.filter(f => f.system === 'electrical').length * 18) - (realTimeData.hybridBattery < 35 ? 15 : 0));
+            const mechanical = Math.max(0, 100 - (activeFaults.filter(f => f.system === 'mechanical').length * 22));
+            const thermal = Math.max(0, 100 - (activeFaults.filter(f => f.system === 'thermal').length * 18) - (realTimeData.engineTemp > 100 ? 15 : 0));
+            
+            document.getElementById('electricalHealth').textContent = `${Math.round(electrical)}%`;
+            document.getElementById('electricalFill').style.width = `${electrical}%`;
+            document.getElementById('mechanicalHealth').textContent = `${Math.round(mechanical)}%`;
+            document.getElementById('mechanicalFill').style.width = `${mechanical}%`;
+            document.getElementById('thermalHealth').textContent = `${Math.round(thermal)}%`;
+            document.getElementById('thermalFill').style.width = `${thermal}%`;
+        }
+
+        function showFaultDetails(code) {
+            const fault = DTC_DATABASE[code] || { description: 'Código no reconocido', solution: 'Consultar taller', symptoms: ['Revisión necesaria'] };
+            document.getElementById('modalTitle').innerHTML = `<i class="fas fa-bug"></i> Código: ${code}`;
+            document.getElementById('modalDetails').innerHTML = `
+                <p><strong>📝 Descripción:</strong> ${fault.description}</p>
+                <p><strong>🔧 Solución:</strong> ${fault.solution}</p>
+                <p><strong>🚨 Síntomas:</strong></p><ul>${fault.symptoms.map(s => `<li>${s}</li>`).join('')}</ul>
+            `;
+            document.getElementById('faultModal').style.display = 'flex';
+        }
+
+        function clearAllFaults() {
+            if(confirm('⚠️ ¿Borrar todos los fallos activos?')) {
+                activeFaults.forEach(f => faultHistory.unshift({ ...f, cleared: true, clearedAt: new Date().toISOString() }));
+                activeFaults = [];
+                saveData();
+                updateFaultsDisplay();
+                updateHealthScore();
+                showToast('✅ Fallos borrados', 'success');
+            }
+        }
+
+        function exportFaultHistory() {
+            const data = { exportDate: new Date().toISOString(), faults: faultHistory, trips };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hybridcare_diagnostic_${new Date().toISOString().slice(0,19)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📄 Historial exportado', 'success');
+        }
+
+        // ==================== BATERÍA HÍBRIDA ====================
+        function updateBatteryUI() {
+            document.getElementById('batterySOH').textContent = `${Math.round(batteryData.soh)}%`;
+            document.getElementById('batterySOHFill').style.width = `${batteryData.soh}%`;
+            document.getElementById('batteryCapacity').textContent = `${Math.round(batteryData.capacity)}%`;
+            document.getElementById('batteryCapacityFill').style.width = `${batteryData.capacity}%`;
+            document.getElementById('batteryVoltage').textContent = `${batteryData.voltage.toFixed(1)} V`;
+            document.getElementById('batteryCurrent').textContent = `${batteryData.current.toFixed(1)} A`;
+            document.getElementById('batteryCycles').textContent = batteryData.cycles;
+            
+            // Calcular vida útil restante
+            const lifeRemaining = Math.max(0, (batteryData.soh - 50) / 8);
+            document.getElementById('batteryLifeRemaining').textContent = `${lifeRemaining.toFixed(1)} años`;
+            
+            document.getElementById('chargingEfficiency').textContent = `${Math.round(batteryData.chargingEfficiency)}%`;
+            document.getElementById('chargingEfficiencyFill').style.width = `${batteryData.chargingEfficiency}%`;
+            document.getElementById('regenerativePower').textContent = `${batteryData.regenerativePower.toFixed(1)} kW`;
+            document.getElementById('regenerativeFill').style.width = `${(batteryData.regenerativePower / 60) * 100}%`;
+            
+            // Recomendaciones
+            let recommendation = '';
+            if (batteryData.soh < 70) {
+                recommendation = '⚠️ La batería híbrida muestra degradación significativa. Programa una revisión.';
+            } else if (batteryData.soh < 85) {
+                recommendation = '📊 La batería tiene un desgaste normal para su edad. Mantén el mantenimiento regular.';
+            } else {
+                recommendation = '✅ La batería híbrida está en excelente estado. Sigue con el mantenimiento preventivo.';
+            }
+            document.getElementById('batteryRecommendations').innerHTML = `<i class="fas fa-info-circle"></i> ${recommendation}`;
+        }
+
+        function analyzeBattery() {
+            showToast('🔋 Analizando estado de la batería...', 'info');
+            setTimeout(() => {
+                updateBatteryUI();
+                showToast(`✅ SOH: ${batteryData.soh}% - ${batteryData.soh > 80 ? 'Excelente' : batteryData.soh > 60 ? 'Aceptable' : 'Requiere atención'}`, 'success');
+            }, 1000);
+        }
+
+        // ==================== CONSUMO ====================
+        function updateConsumptionUI() {
+            document.getElementById('instantConsumption').textContent = `${consumptionData.instant.toFixed(1)} L/100km`;
+            const consumptionPercent = Math.min(100, (consumptionData.instant / 10) * 100);
+            document.getElementById('consumptionFill').style.width = `${consumptionPercent}%`;
+            document.getElementById('avgConsumption').textContent = `${consumptionData.average.toFixed(1)} L/100km`;
+            document.getElementById('avgConsumptionFill').style.width = `${(consumptionData.average / 8) * 100}%`;
+            
+            // Coste por km
+            const costPerKm = (consumptionData.average / 100) * 1.65;
+            document.getElementById('costPerKm').textContent = `${costPerKm.toFixed(3)} €/km`;
+            document.getElementById('savingsVsConventional').textContent = `${consumptionData.totalSaved.toFixed(2)} €`;
+            document.getElementById('co2Saved').textContent = `${Math.round(consumptionData.totalSaved * 2.3)} kg`;
+            document.getElementById('totalTripsCount').textContent = trips.length;
+            
+            // Análisis de consumo
+            let analysis = '';
+            if (consumptionData.instant > 7) {
+                analysis = '⚠️ Consumo elevado. Revisa presión de neumáticos y evita aceleraciones bruscas.';
+            } else if (consumptionData.instant < 4.5) {
+                analysis = '🏆 Consumo excelente. Estás aprovechando bien el sistema híbrido.';
+            } else {
+                analysis = '✅ Consumo dentro de parámetros normales. Sigue así.';
+            }
+            document.getElementById('consumptionAnalysis').innerHTML = `<i class="fas fa-chart-line"></i> ${analysis}`;
+            
+            // Comparativa con convencional
+            comparisonChart.data.datasets[0].data = [consumptionData.average, 8.5];
+            comparisonChart.update();
+            document.getElementById('comparisonText').innerHTML = `Ahorro del ${((8.5 - consumptionData.average) / 8.5 * 100).toFixed(0)}% frente a un coche convencional`;
+        }
+
+        function calculateSavings() {
+            const totalDistance = trips.reduce((sum, t) => sum + t.distance, 0);
+            const conventionalCost = (totalDistance / 100) * 8.5 * 1.65;
+            const hybridCost = (totalDistance / 100) * consumptionData.average * 1.65;
+            const savings = conventionalCost - hybridCost;
+            
+            showToast(`💰 Ahorro total: ${savings.toFixed(2)}€ en ${totalDistance.toFixed(0)} km`, 'success');
+        }
+
+        // ==================== MANTENIMIENTO ====================
+        function updateMaintenanceReminders() {
+            const odometer = parseInt(document.getElementById('currentOdometer').value) || 0;
+            const reminders = [
+                { name: 'Cambio de aceite', interval: 10000, lastDone: 0, icon: '🛢️' },
+                { name: 'Filtro de aire', interval: 20000, lastDone: 0, icon: '🌬️' },
+                { name: 'Bujías', interval: 80000, lastDone: 0, icon: '⚡' },
+                { name: 'Refrigerante motor', interval: 100000, lastDone: 0, icon: '❄️' },
+                { name: 'Refrigerante inversor', interval: 100000, lastDone: 0, icon: '🔌' },
+                { name: 'Líquido de frenos', interval: 40000, lastDone: 0, icon: '🛑' },
+                { name: 'Aceite transmisión e-CVT', interval: 120000, lastDone: 0, icon: '⚙️' },
+                { name: 'Filtro batería híbrida', interval: 30000, lastDone: 0, icon: '🔋' }
+            ];
+            
+            const container = document.getElementById('maintenanceReminders');
+            container.innerHTML = reminders.map(r => {
+                const nextDue = Math.ceil(odometer / r.interval) * r.interval;
+                const kmToDue = nextDue - odometer;
+                const status = kmToDue <= 0 ? '⚠️ VENCIDO' : kmToDue <= 1000 ? '🔔 PRÓXIMO' : '✅ OK';
+                return `
+                    <div class="fault-item minor">
+                        <div><strong>${r.icon} ${r.name}</strong></div>
+                        <div>Próximo servicio: ${nextDue.toLocaleString()} km (en ${kmToDue.toLocaleString()} km)</div>
+                        <div style="font-size: 12px;">Estado: ${status}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            showToast('📅 Recordatorios de mantenimiento actualizados', 'success');
+        }
+
+        function addServiceRecord() {
+            const service = prompt('Describe el servicio realizado:', 'Cambio de aceite');
+            if (service) {
+                serviceRecords.unshift({
+                    date: new Date().toLocaleString(),
+                    service: service,
+                    odometer: document.getElementById('currentOdometer').value || 0
+                });
+                saveData();
+                showToast('✅ Servicio registrado', 'success');
+            }
+        }
+
+        function exportMaintenanceSchedule() {
+            const schedule = [
+                { km: 10000, items: ['Cambio de aceite', 'Revisión general'] },
+                { km: 20000, items: ['Filtro de aire', 'Rotación neumáticos'] },
+                { km: 40000, items: ['Líquido de frenos', 'Filtro habitáculo'] },
+                { km: 80000, items: ['Bujías', 'Refrigerante motor'] }
+            ];
+            const blob = new Blob([JSON.stringify(schedule, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mantenimiento_hybridcare.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📋 Plan de mantenimiento exportado', 'success');
+        }
+
+        // ==================== BACKUP Y ESTADÍSTICAS ====================
+        function createBackup() {
+            const backup = {
+                version: '3.0',
+                timestamp: new Date().toISOString(),
+                data: { faultHistory, trips, serviceRecords, consumptionData }
+            };
+            localStorage.setItem('hybridcare_backup', JSON.stringify(backup));
+            document.getElementById('backupInfo').innerHTML = `Último backup: ${new Date().toLocaleString()}`;
+            showToast('💾 Copia de seguridad creada', 'success');
+        }
+
+        function exportBackup() {
+            const backup = {
+                version: '3.0',
+                timestamp: new Date().toISOString(),
+                data: { faultHistory, trips, serviceRecords, consumptionData }
+            };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hybridcare_backup_${new Date().toISOString().slice(0,19)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📦 Backup exportado', 'success');
+        }
+
+        function restoreBackup(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const backup = JSON.parse(e.target.result);
+                    if (backup.data) {
+                        faultHistory = backup.data.faultHistory || [];
+                        trips = backup.data.trips || [];
+                        serviceRecords = backup.data.serviceRecords || [];
+                        consumptionData = backup.data.consumptionData || consumptionData;
+                        saveData();
+                        updateUI();
+                        showToast('✅ Backup restaurado correctamente', 'success');
+                    }
+                } catch (error) {
+                    showToast('❌ Error al restaurar backup', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function autoBackup() {
+            createBackup();
+            console.log('Backup automático realizado');
+        }
+
+        function syncToCloud() {
+            showToast('☁️ Sincronización con Google Drive - Próximamente', 'info');
+        }
+
+        function syncToICloud() {
+            showToast('☁️ Sincronización con iCloud - Próximamente', 'info');
+        }
+
+        function configureWebDAV() {
+            showToast('☁️ Configuración WebDAV - Próximamente', 'info');
+        }
+
+        function exportStatistics() {
+            const stats = {
+                totalTrips: trips.length,
+                totalDistance: trips.reduce((s, t) => s + t.distance, 0),
+                averageEfficiency: trips.length ? (trips.reduce((s, t) => s + (t.efficiency || 75), 0) / trips.length).toFixed(1) : 0,
+                totalFaults: faultHistory.length,
+                batterySOH: batteryData.soh,
+                averageConsumption: consumptionData.average
+            };
+            const blob = new Blob([JSON.stringify(stats, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hybridcare_stats.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📊 Estadísticas exportadas', 'success');
+        }
+
+        // ==================== GPS Y RUTAS ====================
+        function startRouteTracking() {
+            if(!navigator.geolocation) {
+                showToast('❌ Tu dispositivo no soporta GPS', 'error');
+                return;
+            }
+            
+            routeTracking = true;
+            routePath = [];
+            showToast('📍 Seguimiento de ruta iniciado', 'success');
+            
+            navigator.geolocation.watchPosition(position => {
+                const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
+                routePath.push(pos);
+                
+                let totalDist = 0;
+                for(let i = 1; i < routePath.length; i++) {
+                    const R = 6371;
+                    const dLat = (routePath[i].lat - routePath[i-1].lat) * Math.PI / 180;
+                    const dLon = (routePath[i].lng - routePath[i-1].lng) * Math.PI / 180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                              Math.cos(routePath[i-1].lat * Math.PI/180) * Math.cos(routePath[i].lat * Math.PI/180) *
+                              Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    totalDist += R * c;
+                }
+                
+                const savings = totalDist * 0.08;
+                document.getElementById('drivingTip').innerHTML = `<i class="fas fa-map-marked-alt"></i> Ruta activa | Distancia: ${totalDist.toFixed(1)} km | Ahorro: ${savings.toFixed(2)}€`;
+            });
+        }
+
+        // ==================== VIAJES Y REPORTES ====================
+        function registerTrip() {
+            const dist = prompt('📏 Distancia recorrida (km):', '50');
+            if(!dist || isNaN(dist) || parseFloat(dist) <= 0) {
+                showToast('❌ Ingresa una distancia válida', 'error');
+                return;
+            }
+            
+            const efficiency = parseInt(document.getElementById('drivingEfficiency').textContent) || 75;
+            const trip = { 
+                id: Date.now(), 
+                date: new Date().toISOString(), 
+                distance: parseFloat(dist), 
+                efficiency: efficiency,
+                consumption: consumptionData.instant
+            };
+            trips.unshift(trip);
+            if(trips.length > 100) trips.pop();
+            
+            consumptionData.totalDistance += parseFloat(dist);
+            consumptionData.totalSaved += (dist / 100) * (8.5 - consumptionData.average) * 1.65;
+            
+            saveData();
+            updateUI();
+            updateConsumptionUI();
+            
+            showToast(`✅ Viaje registrado: ${dist} km con ${efficiency}% eficiencia`, 'success');
+            
+            if(efficiency > 85) speakResponse(`¡Excelente viaje! ${efficiency}% de eficiencia.`);
+        }
+
+        function generateReport() {
+            if (trips.length === 0 && faultHistory.length === 0) {
+                showToast('No hay datos suficientes para generar un informe', 'warning');
+                return;
+            }
+            
+            const reportHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"><title>Informe HybridCare Pro</title>
+                <style>
+                    body { font-family: Arial; margin: 40px; }
+                    .header { text-align: center; border-bottom: 2px solid #48bb78; padding-bottom: 20px; }
+                    .section { margin: 30px 0; }
+                    .fault { background: #fff5f5; padding: 10px; margin: 5px 0; border-left: 3px solid #e53e3e; }
+                </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🔋 HybridCare Pro</h1>
+                        <p>Informe de diagnóstico - ${new Date().toLocaleString()}</p>
+                    </div>
+                    <div class="section">
+                        <h2>📊 Resumen del Vehículo</h2>
+                        <p>Batería híbrida: ${Math.round(realTimeData.hybridBattery)}%</p>
+                        <p>Salud general: ${document.getElementById('healthScore').textContent}</p>
+                        <p>Total viajes: ${trips.length}</p>
+                        <p>Distancia total: ${consumptionData.totalDistance.toFixed(0)} km</p>
+                    </div>
+                    <div class="section">
+                        <h2>⚠️ Fallos Detectados</h2>
+                        ${activeFaults.length === 0 ? '<p>✅ Sin fallos activos</p>' : activeFaults.map(f => `<div class="fault"><strong>${f.code}</strong><br>${f.description}</div>`).join('')}
+                    </div>
+                    <div class="section">
+                        <h2>📈 Recomendaciones</h2>
+                        <ul>${activeFaults.length > 0 ? '<li>⚠️ Revisar los fallos detectados lo antes posible</li>' : ''}
+                        <li>🔋 Mantener el nivel de batería entre 40-60% para prolongar su vida útil</li>
+                        <li>📅 Próximo mantenimiento: ${Math.ceil(parseInt(document.getElementById('currentOdometer')?.value || 0) / 10000) * 10000} km</li>
+                        </ul>
+                    </div>
+                    <p style="margin-top: 40px; font-size: 12px; color: #718096;">Informe generado por HybridCare Pro - Diagnóstico profesional para vehículos híbridos</p>
+                </body>
+                </html>
+            `;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(reportHtml);
+            printWindow.document.close();
+            printWindow.print();
+            
+            showToast('📄 Generando informe...', 'success');
+        }
+
+        // ==================== CONEXIÓN OBD2 ====================
+        async function toggleConnection() {
+            if(!isConnected) {
+                updateConnectionStatus('connecting', 'Conectando...');
+                setTimeout(() => {
+                    isConnected = true;
+                    updateConnectionStatus('connected', 'Conectado');
+                    document.getElementById('registerBtn').disabled = false;
+                    document.getElementById('routeBtn').disabled = false;
+                    document.getElementById('reportBtn').disabled = false;
+                    document.getElementById('analyzeBatteryBtn').disabled = false;
+                    showToast('✅ Conectado al adaptador OBD2', 'success');
+                    refreshDiagnostics();
+                }, 1500);
+            } else {
+                isConnected = false;
+                updateConnectionStatus('disconnected', 'Desconectado');
+                document.getElementById('registerBtn').disabled = true;
+                document.getElementById('routeBtn').disabled = true;
+                document.getElementById('reportBtn').disabled = true;
+                document.getElementById('analyzeBatteryBtn').disabled = true;
+                showToast('🔌 Desconectado', 'info');
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('hybridBattery').textContent = `${Math.round(realTimeData.hybridBattery)}%`;
+            document.getElementById('hybridBatteryFill').style.width = `${realTimeData.hybridBattery}%`;
+            document.getElementById('fuelLevel').textContent = `${Math.round(realTimeData.fuelLevel)}%`;
+            document.getElementById('fuelFill').style.width = `${realTimeData.fuelLevel}%`;
+            document.getElementById('rpm').textContent = realTimeData.rpm;
+            document.getElementById('speed').textContent = `${realTimeData.speed} km/h`;
+            document.getElementById('engineTemp').textContent = `${realTimeData.engineTemp}°C`;
+            document.getElementById('batteryTemp').textContent = `${realTimeData.batteryTemp}°C`;
+            document.getElementById('voltage').textContent = `${realTimeData.voltage.toFixed(1)} V`;
+            document.getElementById('alternator').textContent = `${realTimeData.alternator} A`;
+            const range = (realTimeData.fuelLevel/100)*650 + (realTimeData.hybridBattery/100)*60;
+            document.getElementById('totalRange').textContent = Math.round(range);
+            
+            // Estadísticas
+            const totalDistance = trips.reduce((s, t) => s + t.distance, 0);
+            document.getElementById('statsTotalTrips').textContent = trips.length;
+            document.getElementById('statsTotalDistance').textContent = `${totalDistance.toFixed(0)} km`;
+            document.getElementById('statsTotalSavings').textContent = `${consumptionData.totalSaved.toFixed(2)} €`;
+            document.getElementById('statsTotalCO2').textContent = `${Math.round(consumptionData.totalSaved * 2.3)} kg`;
+        }
+
+        function updateConnectionStatus(status, text) {
+            document.getElementById('statusLed').className = `status-led ${status}`;
+            document.getElementById('statusText').textContent = text;
+        }
+
+        // ==================== NAVEGACIÓN ====================
+        function switchMainTab(tab) {
+            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.main-tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'dashboard') {
+                document.querySelector('.main-tab').classList.add('active');
+                document.getElementById('tab-dashboard').classList.add('active');
+            } else if (tab === 'battery') {
+                document.querySelectorAll('.main-tab')[1].classList.add('active');
+                document.getElementById('tab-battery').classList.add('active');
+                updateBatteryUI();
+            } else if (tab === 'consumption') {
+                document.querySelectorAll('.main-tab')[2].classList.add('active');
+                document.getElementById('tab-consumption').classList.add('active');
+                updateConsumptionUI();
+            } else if (tab === 'maintenance') {
+                document.querySelectorAll('.main-tab')[3].classList.add('active');
+                document.getElementById('tab-maintenance').classList.add('active');
+            } else if (tab === 'backup') {
+                document.querySelectorAll('.main-tab')[4].classList.add('active');
+                document.getElementById('tab-backup').classList.add('active');
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if(tab === 'active') { 
+                document.querySelector('.tab').classList.add('active'); 
+                document.getElementById('activeTab').classList.add('active'); 
+            } else if(tab === 'history') { 
+                document.querySelectorAll('.tab')[1].classList.add('active'); 
+                document.getElementById('historyTab').classList.add('active'); 
+            } else { 
+                document.querySelectorAll('.tab')[2].classList.add('active'); 
+                document.getElementById('predictiveTab').classList.add('active'); 
+            }
+        }
+
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light-theme');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            const icon = document.querySelector('.theme-switch i');
+            icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+            showToast(isLight ? '🌞 Modo claro' : '🌙 Modo oscuro', 'info');
+        }
+
+        function closeModal() { 
+            document.getElementById('faultModal').style.display = 'none'; 
+        }
+
+        function showToast(message, type) { 
+            const toast = document.createElement('div'); 
+            toast.className = `toast`; 
+            const colors = { success: '#48bb78', error: '#e53e3e', warning: '#f6ad55', info: '#4299e1' };
+            toast.style.background = colors[type] || '#48bb78';
+            toast.style.color = 'white'; 
+            toast.innerHTML = message;
+            document.body.appendChild(toast); 
+            setTimeout(() => toast.remove(), 3500); 
+        }
+
+        // Iniciar
+        init();
+    </script>
+</body>
+</html>
